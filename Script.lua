@@ -1239,3 +1239,5 @@ SkeletonTransparency:OnChanged(function(Value)
         end
     end
 end)
+
+print("Script carregado")
