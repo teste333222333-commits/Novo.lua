@@ -191,7 +191,7 @@ local function CreateESP(player)
         line.Visible = false
         line.Color = Settings.SkeletonColor
         line.Thickness = Settings.SkeletonThickness
-        line.Transparency = Settings.SkeletonTransparency
+        line.Transparency = tonumber(Settings.SkeletonTransparency)
     end
 
     Drawings.Skeleton[player] = skeleton
@@ -1147,17 +1147,17 @@ RunService.RenderStepped:Connect(function()
     end
 
     local currentTime = tick()
-    if currentTime - lastUpdate >= Settings.RefreshRate then
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer then
-                if not Drawings.ESP[player] then
-                    CreateESP(player)
-                end
-                UpdateESP(player)
+if currentTime - lastUpdate >= tonumber(Settings.RefreshRate) then
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if not Drawings.ESP[player] then
+                CreateESP(player)
             end
-        end
+         UpdateESP(player)
+         end
+     end
         lastUpdate = currentTime
-    end
+     end
 end)
 
 Players.PlayerAdded:Connect(CreateESP)
@@ -1230,12 +1230,12 @@ local SkeletonTransparency = SkeletonSection:AddSlider("SkeletonTransparency", {
     Rounding = 2
 })
 SkeletonTransparency:OnChanged(function(Value)
-    Settings.SkeletonTransparency = Value
+    Settings.SkeletonTransparency = tonumber(Value)
     for _, player in ipairs(Players:GetPlayers()) do
         local skeleton = Drawings.Skeleton[player]
         if skeleton then
             for _, line in pairs(skeleton) do
-                line.Transparency = Value
+                line.Transparency = tonumber(Value)
             end
         end
     end
