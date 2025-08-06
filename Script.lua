@@ -741,6 +741,102 @@ local function UpdateESP(player)
     end
 end
 
+--[[
+=== HITBOX SYSTEM (Roblox Avançado) ===
+Cole abaixo do bloco de SkeletonTransparency:OnChanged
+]]--
+
+-- Armazenamento original para restaurar hitboxes
+local OriginalHitboxes = {}
+
+-- Configuração inicial de hitbox
+local Config = {
+    HitboxEnabled = false,
+    HitboxSize = Vector3.new(7,7,7),
+    HitboxColor = Color3.fromRGB(255,0,0)
+}
+
+-- UI para hitbox (adicione após SkeletonTransparency slider)
+local HitboxSection = Tabs.ESP:AddSection("Hitbox")
+
+local HitboxToggle = HitboxSection:AddToggle("HitboxEnabled", {
+    Title = "Enable Hitbox",
+    Default = false
+})
+HitboxToggle:OnChanged(function()
+    Config.HitboxEnabled = HitboxToggle.Value
+end)
+
+local HitboxSizeSlider = HitboxSection:AddSlider("HitboxSize", {
+    Title = "Hitbox Size",
+    Default = 7,
+    Min = 2,
+    Max = 15,
+    Rounding = 0
+})
+HitboxSizeSlider:OnChanged(function(Value)
+    Config.HitboxSize = Vector3.new(Value, Value, Value)
+end)
+
+local HitboxColorPicker = HitboxSection:AddColorpicker("HitboxColor", {
+    Title = "Hitbox Color",
+    Default = Config.HitboxColor
+})
+HitboxColorPicker:OnChanged(function(Value)
+    Config.HitboxColor = Value
+end)
+
+-- Função para aplicar hitbox customizado
+local function applyHitbox(player, size, color)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local root = player.Character.HumanoidRootPart
+        if not OriginalHitboxes[player] then
+            OriginalHitboxes[player] = {
+                Size = root.Size,
+                Transparency = root.Transparency,
+                Color = root.Color
+            }
+        end
+        root.Size = size
+        root.Transparency = 0.5
+        root.Color = color
+        root.Material = Enum.Material.Neon
+        root.CanCollide = false
+    end
+end
+
+-- Função para restaurar hitbox original
+local function restoreHitbox(player)
+    local data = OriginalHitboxes[player]
+    if data and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local root = player.Character.HumanoidRootPart
+        root.Size = data.Size
+        root.Transparency = data.Transparency
+        root.Color = data.Color
+        root.Material = Enum.Material.Plastic
+        root.CanCollide = true
+    end
+end
+
+-- Loop de aplicação automática
+RunService.Heartbeat:Connect(function()
+    if Config.HitboxEnabled then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") then
+                if player.Character.Humanoid.Health > 0 then
+                    applyHitbox(player, Config.HitboxSize, Config.HitboxColor)
+                end
+            end
+        end
+    else
+        for _, player in pairs(Players:GetPlayers()) do
+            if OriginalHitboxes[player] then
+                restoreHitbox(player)
+            end
+        end
+    end
+end)
+
 local function DisableESP()
     for _, player in ipairs(Players:GetPlayers()) do
         local esp = Drawings.ESP[player]
@@ -867,11 +963,7 @@ do
         Title = "Enable Chams",
         Default = false
     })
-   
-    local hitboxToggle = hitboxSection:AddToggle("hitboxEnabled", {
-        Title = "Enable hitbox",
-        Default = false
-
+    
      ChamsToggle:OnChanged(function()
         Settings.ChamsEnabled = ChamsToggle.Value
     end)
