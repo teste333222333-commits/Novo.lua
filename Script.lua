@@ -756,27 +756,6 @@ local Config = {
     HitboxColor = Color3.fromRGB(255,0,0)
 }
 
-local HitboxToggle = HitboxSection:AddToggle("HitboxEnabled", {
-    Title = "Enable Hitbox",
-    Default = false
-})
-
-local HitboxSizeSlider = HitboxSection:AddSlider("HitboxSize", {
-    Title = "Hitbox Size",
-    Default = 7,
-    Min = 2,
-    Max = 15,
-    Rounding = 0
-})
-
-local HitboxColorPicker = HitboxSection:AddColorpicker("HitboxColor", {
-    Title = "Hitbox Color",
-    Default = Config.HitboxColor
-})
-HitboxColorPicker:OnChanged(function(Value)
-    Config.HitboxColor = Value
-end)
-
 -- Função para aplicar hitbox customizado
 local function applyHitbox(player, size, color)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -894,7 +873,40 @@ do
             end
         end
     end)
+-- Configuração inicial de hitbox (MANTENHA ou mova para aqui)
+local Config = {
+    HitboxEnabled = false,
+    HitboxSize = Vector3.new(7,7,7),
+    HitboxColor = Color3.fromRGB(255,0,0)
+}
 
+local HitboxToggle = HitboxSection:AddToggle("HitboxEnabled", {
+    Title = "Enable Hitbox",
+    Default = false
+    })
+HitboxToggle:OnChanged(function(value)
+    Config.HitboxEnabled = value
+    end)
+
+local HitboxSizeSlider = HitboxSection:AddSlider("HitboxSize", {
+    Title = "Hitbox Size",
+    Default = 7,
+    Min = 2,
+    Max = 15,
+    Rounding = 0
+    })
+      HitboxSizeSlider:OnChanged(function(value)
+      Config.HitboxSize = Vector3.new(value, value, value)
+    end)
+
+   local HitboxColorPicker = HitboxSection:AddColorpicker("HitboxColor", {
+       Title = "Hitbox Color",
+       Default = Config.HitboxColor
+    })
+        HitboxColorPicker:OnChanged(function(value)
+        Config.HitboxColor = value
+    end)
+    
     local TeamCheckToggle = MainSection:AddToggle("TeamCheck", {
         Title = "Team Check",
         Default = false
