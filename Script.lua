@@ -847,67 +847,6 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.LeftControl
 })
 
-local Tabs = {
-    ESP = Window:AddTab({ Title = "ESP", Icon = "eye" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
-    Config = Window:AddTab({ Title = "Config", Icon = "save" })
-}
-HitboxSizeSlider:OnChanged(function(value)
-    Config.HitboxSize = Vector3.new(value, value, value)
-    end)
-
-do
-    local MainSection = Tabs.ESP:AddSection("Main ESP")
-
-    local EnabledToggle = MainSection:AddToggle("Enabled", {
-        Title = "Enable ESP",
-        Default = false
-    })
-    EnabledToggle:OnChanged(function()
-        Settings.Enabled = EnabledToggle.Value
-        if not Settings.Enabled then
-            CleanupESP()
-        else
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer then
-                    CreateESP(player)
-                end
-            end
-        end
-    end)
--- Configuração inicial de hitbox (MANTENHA ou mova para aqui)
-local Config = {
-    HitboxEnabled = false,
-    HitboxSize = Vector3.new(7,7,7),
-    HitboxColor = Color3.fromRGB(255,0,0)
-}
-
-local HitboxToggle = HitboxSection:AddToggle("HitboxEnabled", {
-    Title = "Enable Hitbox",
-    Default = false
-    })
-HitboxToggle:OnChanged(function(value)
-    Config.HitboxEnabled = value
-    end)
-
-local HitboxSizeSlider = HitboxSection:AddSlider("HitboxSize", {
-    Title = "Hitbox Size",
-    Default = 7,
-    Min = 2,
-    Max = 15,
-    Rounding = 0
-    })
-      HitboxSizeSlider:OnChanged(function(value)
-      Config.HitboxSize = Vector3.new(value, value, value)
-    end)
-
-   local HitboxColorPicker = HitboxSection:AddColorpicker("HitboxColor", {
-       Title = "Hitbox Color",
-       Default = Config.HitboxColor
-    })
-        HitboxColorPicker:OnChanged(function(value)
-        Config.HitboxColor = value
-    end)
     
     local TeamCheckToggle = MainSection:AddToggle("TeamCheck", {
         Title = "Team Check",
@@ -915,7 +854,103 @@ local HitboxSizeSlider = HitboxSection:AddSlider("HitboxSize", {
     })
     TeamCheckToggle:OnChanged(function()
         Settings.TeamCheck = TeamCheckToggle.Value
-    end)
+  -- Bloco de configuração global (no topo do script, uma vez só)
+local Config = {
+    HitboxEnabled = false,
+    HitboxSize = Vector3.new(7,7,7),
+    HitboxColor = Color3.fromRGB(255,0,0)
+}
+
+-- Armazenamento original para restaurar hitboxes
+local OriginalHitboxes = {}
+
+-- Função para aplicar hitbox customizado
+local function applyHitbox(player, size, color)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local root = player.Character.HumanoidRootPart
+        if not OriginalHitboxes[player] then
+            OriginalHitboxes[player] = {
+                Size = root.Size,
+                Transparency = root.Transparency,
+                Color = root.Color,
+                Material = root.Material,
+                CanCollide = root.CanCollide
+            }
+        end
+        root.Size = size
+        root.Transparency = 0.5
+        root.Color = color
+        root.Material = Enum.Material.Neon
+        root.CanCollide = false
+    end
+end
+
+-- Função para restaurar hitbox original
+local function restoreHitbox(player)
+    local data = OriginalHitboxes[player]
+    if data and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local root = player.Character.HumanoidRootPart
+        root.Size = data.Size
+        root.Transparency = data.Transparency
+        root.Color = data.Color
+        root.Material = data.Material
+        root.CanCollide = data.CanCollide
+        OriginalHitboxes[player] = nil
+    end
+end
+
+-- Loop de aplicação automática
+RunService.Heartbeat:Connect(function()
+    if Config.HitboxEnabled then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") then
+                if player.Character.Humanoid.Health > 0 then
+                    applyHitbox(player, Config.HitboxSize, Config.HitboxColor)
+                end
+            end
+        end
+    else
+        for _, player in pairs(Players:GetPlayers()) do
+            if OriginalHitboxes[player] then
+                restoreHitbox(player)
+            end
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    restoreHitbox(player)
+end)
+
+-- ==== BLOCO DE UI (APÓS CRIAR Window, Tabs, Sections) ====
+local HitboxSection = Tabs.ESP:AddSection("Hitbox")
+
+local HitboxToggle = HitboxSection:AddToggle("HitboxEnabled", {
+    Title = "Enable Hitbox",
+    Default = Config.HitboxEnabled
+})
+HitboxToggle:OnChanged(function(value)
+    Config.HitboxEnabled = value
+end)
+
+local HitboxSizeSlider = HitboxSection:AddSlider("HitboxSize", {
+    Title = "Hitbox Size",
+    Default = 7,
+    Min = 2,
+    Max = 15,
+    Rounding = 0
+})
+HitboxSizeSlider:OnChanged(function(value)
+    Config.HitboxSize = Vector3.new(value, value, value)
+end)
+
+local HitboxColorPicker = HitboxSection:AddColorpicker("HitboxColor", {
+    Title = "Hitbox Color",
+    Default = Config.HitboxColor
+})
+HitboxColorPicker:OnChanged(function(value)
+    Config.HitboxColor = value
+end)  end)
 
     local ShowTeamToggle = MainSection:AddToggle("ShowTeam", {
         Title = "Show Team",
