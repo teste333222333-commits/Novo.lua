@@ -867,7 +867,12 @@ do
         Title = "Enable Chams",
         Default = false
     })
-    ChamsToggle:OnChanged(function()
+   
+    local hitboxToggle = hitboxSection:AddToggle("hitboxEnabled", {
+        Title = "Enable hitbox",
+        Default = false
+
+     ChamsToggle:OnChanged(function()
         Settings.ChamsEnabled = ChamsToggle.Value
     end)
 
