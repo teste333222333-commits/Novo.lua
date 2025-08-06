@@ -760,9 +760,6 @@ local HitboxToggle = HitboxSection:AddToggle("HitboxEnabled", {
     Title = "Enable Hitbox",
     Default = false
 })
-HitboxSizeSlider:OnChanged(function(value)
-    Config.HitboxSize = Vector3.new(value, value, value)
-end)
 
 local HitboxSizeSlider = HitboxSection:AddSlider("HitboxSize", {
     Title = "Hitbox Size",
@@ -1312,6 +1309,10 @@ SkeletonThickness:OnChanged(function(Value)
             end
         end
     end
+end)
+
+HitboxSizeSlider:OnChanged(function(value)
+    Config.HitboxSize = Vector3.new(value, value, value)
 end)
 
 local SkeletonTransparency = SkeletonSection:AddSlider("SkeletonTransparency", {
