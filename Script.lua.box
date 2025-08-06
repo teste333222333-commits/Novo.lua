@@ -188,11 +188,11 @@ local function CreateESP(player)
     }
 
     for _, line in pairs(skeleton) do
-        line.Visible = false
-        line.Color = Settings.SkeletonColor
-        line.Thickness = Settings.SkeletonThickness
-        line.Transparency = Settings.SkeletonTransparency
-    end
+    line.Visible = false
+    line.Color = typeof(Settings.SkeletonColor) == "Color3" and Settings.SkeletonColor or Color3.fromRGB(255, 255, 255)
+    line.Thickness = tonumber(Settings.SkeletonThickness) or 1
+    line.Transparency = tonumber(Settings.SkeletonTransparency) or 1
+end
 
     Drawings.Skeleton[player] = skeleton
 
@@ -1146,19 +1146,18 @@ RunService.RenderStepped:Connect(function()
         return 
     end
 
-    local currentTime = tick()
-    if currentTime - lastUpdate >= Settings.RefreshRate then
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer then
-                if not Drawings.ESP[player] then
-                    CreateESP(player)
-                end
-                UpdateESP(player)
+local currentTime = tick()
+if currentTime - lastUpdate >= Settings.RefreshRate then
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if not Drawings.ESP[player] then
+                CreateESP(player, Settings.ESPColor or Color3.fromRGB(255, 255, 255), Settings.Thickness or 1)
             end
+            UpdateESP(player)
         end
-        lastUpdate = currentTime
     end
-end)
+    lastUpdate = currentTime
+end
 
 Players.PlayerAdded:Connect(CreateESP)
 Players.PlayerRemoving:Connect(RemoveESP)
