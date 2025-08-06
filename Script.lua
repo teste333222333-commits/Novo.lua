@@ -763,8 +763,8 @@ local HitboxToggle = HitboxSection:AddToggle("HitboxEnabled", {
     Title = "Enable Hitbox",
     Default = false
 })
-HitboxToggle:OnChanged(function()
-    Config.HitboxEnabled = HitboxToggle.Value
+HitboxSizeSlider:OnChanged(function(value)
+    Config.HitboxSize = Vector3.new(value, value, value)
 end)
 
 local HitboxSizeSlider = HitboxSection:AddSlider("HitboxSize", {
