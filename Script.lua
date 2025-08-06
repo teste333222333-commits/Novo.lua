@@ -852,8 +852,10 @@ local Tabs = {
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
     Config = Window:AddTab({ Title = "Config", Icon = "save" })
 }
--- UI para hitbox (adicione após SkeletonTransparency slider)
-local HitboxSection = Tabs.ESP:AddSection("Hitbox")
+HitboxSizeSlider:OnChanged(function(value)
+    Config.HitboxSize = Vector3.new(value, value, value)
+    end)
+
 do
     local MainSection = Tabs.ESP:AddSection("Main ESP")
 
@@ -879,10 +881,6 @@ local Config = {
     HitboxSize = Vector3.new(7,7,7),
     HitboxColor = Color3.fromRGB(255,0,0)
 }
-
-    HitboxSizeSlider:OnChanged(function(value)
-    Config.HitboxSize = Vector3.new(value, value, value)
-    end)
 
 local HitboxToggle = HitboxSection:AddToggle("HitboxEnabled", {
     Title = "Enable Hitbox",
@@ -1326,6 +1324,9 @@ SkeletonThickness:OnChanged(function(Value)
         end
     end
 end)
+
+-- UI para hitbox (adicione após SkeletonTransparency slider)
+local HitboxSection = Tabs.ESP:AddSection("Hitbox")
 
 local SkeletonTransparency = SkeletonSection:AddSlider("SkeletonTransparency", {
     Title = "Transparency",
