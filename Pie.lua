@@ -4,112 +4,129 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Variáveis
-local tamanhoHitbox = 4
-local ativado = false
-local minSize = 2
-local maxSize = 20
+local hitboxSize = 2
+local minSize = 1
+local maxSize = 50
+local enabled = false
 
--- Função: aplicar hitbox visual
-local function aplicarHitbox(player)
+-- Função: aplicar hitbox com Glass
+local function applyHitbox(player)
 	local char = player.Character
 	if not char then return end
-	local root = char:FindFirstChild("HumanoidRootPart")
-	if not root then return end
 
-	-- Aplicar tamanho
-	root.Size = Vector3.new(tamanhoHitbox, tamanhoHitbox, tamanhoHitbox)
-	root.Transparency = 1
-	root.CanCollide = false
+	local head = char:FindFirstChild("Head")
+	if not head or not head:IsA("BasePart") then return end
 
-	-- Criar visual se não existir
-	local visual = root:FindFirstChild("BoxVisual")
-	if not visual then
-		visual = Instance.new("BoxHandleAdornment")
-		visual.Name = "BoxVisual"
-		visual.AlwaysOnTop = true
-		visual.ZIndex = 5
-		visual.Transparency = 0.6
-		visual.Color3 = Color3.fromRGB(170, 0, 255)
-		visual.Adornee = root
-		visual.Parent = root
+	-- Criar esfera visual com material Glass
+	local existing = head:FindFirstChild("GlassHitbox")
+	if not existing then
+		local sphere = Instance.new("Part")
+		sphere.Name = "GlassHitbox"
+		sphere.Shape = Enum.PartType.Ball
+		sphere.Material = Enum.Material.Glass
+		sphere.Color = Color3.fromRGB(255, 0, 0)
+		sphere.Transparency = 0.4
+		sphere.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+		sphere.Anchored = false
+		sphere.CanCollide = false
+		sphere.CastShadow = false
+		sphere.Massless = true
+
+		-- Colocar no mesmo lugar do Head
+		local weld = Instance.new("WeldConstraint")
+		sphere.CFrame = head.CFrame
+		sphere.Position = head.Position
+		sphere.Parent = head
+		weld.Part0 = head
+		weld.Part1 = sphere
+		weld.Parent = sphere
 	end
 
-	-- Atualizar tamanho do visual também
-	visual.Size = Vector3.new(tamanhoHitbox, tamanhoHitbox, tamanhoHitbox)
+	-- Atualiza o tamanho
+	local visual = head:FindFirstChild("GlassHitbox")
+	if visual then
+		visual.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+	end
 end
 
--- Função: remover visual
-local function limparHitbox(player)
+-- Função: remover hitbox
+local function clearHitbox(player)
 	local char = player.Character
 	if not char then return end
-	local root = char:FindFirstChild("HumanoidRootPart")
-	if root then
-		local visual = root:FindFirstChild("BoxVisual")
-		if visual then visual:Destroy() end
+
+	local head = char:FindFirstChild("Head")
+	if head then
+		local visual = head:FindFirstChild("GlassHitbox")
+		if visual then
+			visual:Destroy()
+		end
 	end
 end
 
--- Loop contínuo
+-- Loop de renderização
 RunService.Heartbeat:Connect(function()
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player ~= LocalPlayer then
 			local char = player.Character
-			local hum = char and char:FindFirstChild("Humanoid")
+			local hum = char and char:FindFirstChildOfClass("Humanoid")
 			if hum and hum.Health > 0 then
-				if ativado then
-					aplicarHitbox(player)
+				if enabled then
+					applyHitbox(player)
 				else
-					limparHitbox(player)
+					clearHitbox(player)
 				end
 			else
-				limparHitbox(player)
+				clearHitbox(player)
 			end
 		end
 	end
 end)
 
--- Interface
+-- Interface simples
 local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 gui.Name = "HitboxUI"
 gui.ResetOnSpawn = false
 
--- Botão Ativar/Desativar
+-- Botão Toggle
 local toggle = Instance.new("TextButton", gui)
-toggle.Size = UDim2.new(0, 120, 0, 40)
+toggle.Size = UDim2.new(0, 140, 0, 40)
 toggle.Position = UDim2.new(0, 10, 0, 200)
 toggle.Text = "Ativar Hitbox"
-toggle.BackgroundColor3 = Color3.fromRGB(170, 0, 255)
+toggle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 toggle.TextColor3 = Color3.new(1, 1, 1)
 toggle.TextScaled = true
+toggle.Font = Enum.Font.GothamBold
 toggle.MouseButton1Click:Connect(function()
-	ativado = not ativado
-	toggle.Text = ativado and "Desativar Hitbox" or "Ativar Hitbox"
+	enabled = not enabled
+	toggle.Text = enabled and "Desativar Hitbox" or "Ativar Hitbox"
 end)
 
 -- Botão Aumentar
-local mais = Instance.new("TextButton", gui)
-mais.Size = UDim2.new(0, 50, 0, 40)
-mais.Position = UDim2.new(0, 140, 0, 200)
-mais.Text = "+"
-mais.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
-mais.TextColor3 = Color3.new(1, 1, 1)
-mais.TextScaled = true
-mais.MouseButton1Click:Connect(function()
-	if tamanhoHitbox < maxSize then
-		tamanhoHitbox += 1
+local plus = Instance.new("TextButton", gui)
+plus.Size = UDim2.new(0, 50, 0, 40)
+plus.Position = UDim2.new(0, 160, 0, 200)
+plus.Text = "+"
+plus.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+plus.TextColor3 = Color3.new(1, 1, 1)
+plus.TextScaled = true
+plus.Font = Enum.Font.GothamBold
+plus.MouseButton1Click:Connect(function()
+	if hitboxSize < maxSize then
+		hitboxSize += 2
 	end
 end)
 
 -- Botão Diminuir
-local menos = Instance.new("TextButton", gui)
-menos.Size = UDim2.new(0, 50, 0, 40)
-menos.Position = UDim2.new(0, 200, 0, 200)
-menos.Text = "-"
-menos.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
-menos.TextColor3 = Color3.new(1, 1, 1)
-menos.TextScaled = true
-menos.MouseButton1Click:Connect(function()
-	if tamanhoHitbox > minSize then
-		tamanhoHitbox -= 1
+local minus = Instance.new("TextButton", gui)
+minus.Size = UDim2.new(0, 50, 0, 40)
+minus.Position = UDim2.new(0, 220, 0, 200)
+minus.Text = "-"
+minus.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+minus.TextColor3 = Color3.new(1, 1, 1)
+minus.TextScaled = true
+minus.Font = Enum.Font.GothamBold
+minus.MouseButton1Click:Connect(function()
+	if hitboxSize > minSize then
+		hitboxSize -= 2
 	end
 end)
